@@ -15,8 +15,8 @@ def resolve_path(x):
 # GLOBALS #
 ###########
 
-bbmap_container = 'docker://ghcr.io/deardenlab/container-bbmap:bbmap_38.90'
-merqury = 'docker://ghcr.io/deardenlab/container-merqury:v1.3'
+bbmap_container = 'https://github.com/deardenlab/container-bbmap/releases/download/0.0.3/container-bbmap.bbmap_38.90.sif'
+merqury = 'https://github.com/deardenlab/container-merqury/releases/download/v1.3/container-merqury.v1.3.sif'
 
 ########
 # MAIN #

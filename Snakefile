@@ -104,7 +104,7 @@ rule trim_illumina:
     input:
         'output/010_read-prep/run{run}.filter.fastq'
     output:
-        p = pipe('output/010_read-prep/run{run}.trim.fastq'),
+        p = temp('output/010_read-prep/run{run}.trim.fastq'),
         stats = 'output/010_read-prep/run{run}_trim.txt'
     log:
         'output/logs/trim_illumina.{run}.log'

@@ -51,6 +51,7 @@ rule merqury_make_kmers:
         'bash -c \''
         'meryl '
         'count '
+        '-k 21 '
         'output illumina.meryl '
         '{params.fq} '
         '\''

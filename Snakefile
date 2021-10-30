@@ -51,7 +51,7 @@ rule merqury_make_kmers:
         'bash -c \''
         'meryl '
         'k=21 '
-        'cpus={threads} '
+        'threads={threads} '
         'count '
         'output illumina.meryl '
         '{params.fq} '

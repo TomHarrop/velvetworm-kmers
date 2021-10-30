@@ -36,9 +36,9 @@ rule merqury_make_kmers:
     input:
         fq = 'output/010_read-prep/short_reads.fq'
     output:
-        'output/020_merqury/illumina.meryl/merylIndex'
+        'output/030_merqury/illumina.meryl/merylIndex'
     params:
-        wd = 'output/020_merqury',
+        wd = 'output/030_merqury',
         fq = lambda wildcards, input: resolve_path(input.fq)
     log:
         resolve_path('output/logs/merqury_make_kmers.log')
@@ -51,7 +51,7 @@ rule merqury_make_kmers:
         'bash -c \''
         'meryl '
         'count '
-        '-k 21 '
+        'k 21 '
         'output illumina.meryl '
         '{params.fq} '
         '\''

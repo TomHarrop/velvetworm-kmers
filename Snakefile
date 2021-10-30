@@ -29,7 +29,7 @@ merqury = 'https://github.com/deardenlab/container-merqury/releases/download/v1.
 rule target:
     input:
         'output/020_bbnorm/hist_out.txt',
-        'output/020_merqury/illumina.meryl/merylIndex'
+        'output/030_merqury/illumina.meryl/merylIndex'
 
 
 rule merqury_make_kmers:

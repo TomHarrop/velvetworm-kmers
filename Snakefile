@@ -40,7 +40,7 @@ rule merqury_kmer_analysis:
     output:
         'output/030_merqury/{genome}/merq.completeness.stats'
     params:
-        wd = 'output/030_merqury/{wildcards.genome}',
+        wd = 'output/030_merqury/{genome}',
         genome = lambda wildcards, input: resolve_path(input.genome),
         db = lambda wildcards, input: Path(input.db).resolve().parent.as_posix(),
     log:

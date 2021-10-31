@@ -29,7 +29,36 @@ merqury = 'https://github.com/deardenlab/container-merqury/releases/download/v1.
 rule target:
     input:
         'output/020_bbnorm/hist_out.txt',
-        'output/030_merqury/illumina.meryl/merylIndex'
+        'output/030_merqury/illumina.meryl/merylIndex',
+        'output/030_merqury/guppy344/merq.completeness.stats'
+
+
+rule merqury_kmer_analysis:
+    input:
+        genome = 'data/genomes/{genome}.fa',
+        db = 'output/030_merqury/illumina.meryl/merylIndex'
+    output:
+        'output/030_merqury/{genome}/merq.completeness.stats'
+    params:
+        wd = 'output/030_merqury/{wildcards.genome}',
+        genome = lambda wildcards, input: resolve_path(input.genome),
+        db = lambda wildcards, input: Path(input.db).resolve().parent.as_posix(),
+    log:
+        resolve_path('output/logs/merqury_kmer_analysis.{genome}.log')
+    threads:
+        workflow.cores
+    container:
+        merqury
+    shell:
+        'cd {params.wd} || exit 1 ; '
+        'bash -c \''
+        'OMP_NUM_THREADS={threads} '    # no thread control in merqury 
+        '$MERQURY/merqury.sh '          # has to be run from its install dir
+        '{params.db} '
+        '{params.genome} '
+        '{wildcards.genome} '
+        '\''
+        '&> {log}'
 
 
 rule merqury_make_kmers:

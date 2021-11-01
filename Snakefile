@@ -7,6 +7,10 @@ from pathlib import Path
 # FUNCTIONS #
 #############
 
+def resolve_parent(x):
+    return Path(x).resolve().parent.as_posix(),
+
+
 def resolve_path(x):
     return Path(x).resolve().as_posix()
 
@@ -30,7 +34,27 @@ rule target:
     input:
         'output/020_bbnorm/hist_out.txt',
         'output/030_merqury/illumina.meryl/merylIndex',
-        'output/030_merqury/guppy344/merq.completeness.stats'
+        expand('output/030_merqury/guppy344/intersect.{k}.meryl/merylIndex',
+               k=[5, 10]),
+
+
+# need to do this manually because merqury is choosing the wrong cutoff
+# get solid kmers:
+# echo "# Get solid k-mers"
+# $MERQURY/build/filt.sh $read
+# filt=`cat ${read/.meryl/.filt}`
+# read_solid=${read/.meryl/}.gt$filt.meryl
+# meryl greater-than $filt output $db.gt$filt.meryl $db.meryl
+
+
+# look for solid kmers in assembly
+# echo "# k-mer completeness (recoveray rate) with solid k-mers for $asm with > $filt counts"
+# meryl intersect output $asm.solid.meryl $asm.meryl $read_solid
+# TOTAL=`meryl statistics $read_solid | head -n3 | tail -n1 | awk '{print $2}'`
+# ASM=`meryl statistics $asm.solid.meryl | head -n3 | tail -n1 | awk '{print $2}'`
+# echo -e "${asm}\tall\t${ASM}\t${TOTAL}" | awk '{print $0"\t"((100*$3)/$4)}' >> $name.completeness.stats
+# rm -r $asm.solid.meryl
+# echo
 
 
 rule merqury_kmer_analysis:
@@ -42,7 +66,7 @@ rule merqury_kmer_analysis:
     params:
         wd = 'output/030_merqury/{genome}',
         genome = lambda wildcards, input: resolve_path(input.genome),
-        db = lambda wildcards, input: Path(input.db).resolve().parent.as_posix(),
+        db = lambda wildcards, input: resolve_parent(input.db)
     log:
         resolve_path('output/logs/merqury_kmer_analysis.{genome}.log')
     threads:
@@ -61,7 +85,90 @@ rule merqury_kmer_analysis:
         '&> {log}'
 
 
-rule merqury_make_kmers:
+# meryl intersect output $asm.solid.meryl $asm.meryl $read_solid
+rule meryl_intersect_kmers:
+    input:
+        read_solid = 'output/030_merqury/illumina.gt{k}.meryl/merylIndex',
+        genome_db = 'output/030_merqury/{genome}/{genome}.meryl/merylIndex'
+    output: 
+        'output/030_merqury/{genome}/intersect.{k}.meryl/merylIndex'
+    params:
+        wd = 'output/030_merqury/{genome}',
+        genome_db = lambda wildcards, input: resolve_parent(input.genome_db),
+        read_solid = lambda wildcards, input: resolve_parent(input.read_solid)
+    log:
+        resolve_path('output/logs/meryl_intersect_kmers.{genome}.{k}.log')
+    threads:
+        workflow.cores
+    container:
+        merqury
+    shell:
+        'cd {params.wd} || exit 1 ; '
+        'bash -c \''
+        'meryl '
+        'threads={threads} '
+        'intersect '
+        'output intersect.{wildcards.k}.meryl '
+        '{params.genome_db} '
+        '{params.read_solid} '
+        '\''
+        '&> {log}'
+
+
+rule meryl_genome_db:
+    input:
+        genome = 'data/genomes/{genome}.fa',
+    output:
+        'output/030_merqury/{genome}/{genome}.meryl/merylIndex'
+    params:
+        wd = 'output/030_merqury/{genome}',
+        genome = lambda wildcards, input: resolve_path(input.genome),
+    log:
+        resolve_path('output/logs/meryl_genome_db.{genome}.log')
+    threads:
+        workflow.cores
+    container:
+        merqury
+    shell:
+        'cd {params.wd} || exit 1 ; '
+        'bash -c \''
+        'meryl '
+        'k=21 '
+        'threads={threads} '
+        'count '
+        'output {wildcards.genome}.meryl '
+        '{params.genome} '
+        '\''
+        '&> {log}'
+
+
+# meryl greater-than $filt output $db.gt$filt.meryl $db.meryl
+rule meryl_filter_kmers:
+    input:
+        db = 'output/030_merqury/illumina.meryl/merylIndex'
+    output:
+        'output/030_merqury/illumina.gt{k}.meryl/merylIndex'
+    params:
+        wd = 'output/030_merqury',
+        db = lambda wildcards, input: resolve_parent(input.db)
+    log:
+        resolve_path('output/logs/meryl_filter_kmers.{k}.log')
+    threads:
+        workflow.cores
+    container:
+        merqury
+    shell:
+        'cd {params.wd} || exit 1 ; '
+        'bash -c \''
+        'meryl '
+        'threads={threads} '
+        'greater-than '
+        'output illumina.gt{wildcards.k}.meryl '
+        '{params.db} '
+        '\''
+        '&> {log}'
+
+rule meryl_make_kmers:
     input:
         fq = 'output/010_read-prep/short_reads.fq'
     output:
@@ -70,7 +177,7 @@ rule merqury_make_kmers:
         wd = 'output/030_merqury',
         fq = lambda wildcards, input: resolve_path(input.fq)
     log:
-        resolve_path('output/logs/merqury_make_kmers.log')
+        resolve_path('output/logs/meryl_make_kmers.log')
     threads:
         workflow.cores
     container:

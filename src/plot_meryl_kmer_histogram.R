@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript
 
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
+
 library(data.table)
 library(bit64)
 library(ggplot2)
@@ -11,7 +17,6 @@ library(scales)
 
 hist_file <- snakemake@input[["hist"]]
 plot_file <- snakemake@output[["plot"]]
-log_file <- snakemake@log[["log"]]
 
 # dev
 # hist_file <- "output/030_merqury/guppy237.merqury/illumina.hist"
@@ -20,10 +25,6 @@ log_file <- snakemake@log[["log"]]
 # MAIN #
 ########
 
-# set log
-log <- file(log_file, open = "wt")
-sink(log, type = "message")
-sink(log, append = TRUE, type = "output")
 
 # read data
 hist_data <- fread(hist_file)

@@ -21,6 +21,7 @@ def resolve_path(x):
 
 bbmap_container = 'https://github.com/deardenlab/container-bbmap/releases/download/0.0.3/container-bbmap.bbmap_38.90.sif'
 merqury = 'https://github.com/deardenlab/container-merqury/releases/download/v1.3/container-merqury.v1.3.sif'
+r = 'https://github.com/TomHarrop/r-containers/releases/download/bioconductor_3.13/r-containers.latest.sif'
 
 # all from tomharrop/velvetworm-assemble
 genomes = [
@@ -40,7 +41,7 @@ genomes = [
 rule target:
     input:
         'output/020_bbnorm/hist_out.txt',
-        'output/030_merqury/illumina.meryl/merylIndex',
+        'output/030_merqury/illumina.meryl.hist.pdf',
         expand('output/030_merqury/{genome}/intersect.{cutoff}.meryl/merylIndex',
                cutoff=[5, 10],
                genome=genomes),
@@ -170,6 +171,45 @@ rule meryl_filter_kmers:
         '\''
         '&> {log}'
 
+
+rule plot_meryl_kmer_histogram:
+    input:
+        hist = 'output/030_merqury/illumina.meryl.hist',
+    output:
+        plot = 'output/030_merqury/illumina.meryl.hist.pdf'
+    log:    
+        'output/logs/plot_meryl_kmer_histogram.log'
+    container:
+        r
+    script:
+        'src/plot_meryl_kmer_histogram.R'
+
+# meryl histogram $db.meryl > $db.hist
+rule meryl_kmer_hist:
+    input:
+        db = 'output/030_merqury/illumina.meryl/merylIndex'
+    output:
+        'output/030_merqury/illumina.meryl.hist'
+    params:
+        wd = 'output/030_merqury',
+        db = lambda wildcards, input: resolve_parent(input.db)
+    log:
+        resolve_path('output/logs/meryl_kmer_hist.log')
+    threads:
+        workflow.cores
+    container:
+        merqury
+    shell:
+        'cd {params.wd} || exit 1 ; '
+        'bash -c \''
+        'meryl '
+        'threads={threads} '
+        'histogram illumina.meryl.hist '
+        '{params.db} '
+        '> '
+        '\''
+        '2> {log}'
+
 rule meryl_make_kmers:
     input:
         fq = 'output/010_read-prep/short_reads.fq'
@@ -226,7 +266,6 @@ rule bbnorm:
         'min=5 '
         'peaks={output.peaks} '
         '2> {log.norm} '
-
 
 
 rule combine_illumina:

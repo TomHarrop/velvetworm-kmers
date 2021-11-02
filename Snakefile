@@ -22,6 +22,13 @@ def resolve_path(x):
 bbmap_container = 'https://github.com/deardenlab/container-bbmap/releases/download/0.0.3/container-bbmap.bbmap_38.90.sif'
 merqury = 'https://github.com/deardenlab/container-merqury/releases/download/v1.3/container-merqury.v1.3.sif'
 
+# all from tomharrop/velvetworm-assemble
+genomes = [
+    'guppy237',
+    'guppy237_racon_lr',
+    'guppy237_racon_sr',
+    'guppy344']
+
 ########
 # MAIN #
 ########
@@ -34,9 +41,11 @@ rule target:
     input:
         'output/020_bbnorm/hist_out.txt',
         'output/030_merqury/illumina.meryl/merylIndex',
-        expand('output/030_merqury/guppy344/intersect.{cutoff}.meryl/merylIndex',
-               cutoff=[5, 10]),
-        'output/030_merqury/guppy344.merqury/merq.completeness.stats'
+        expand('output/030_merqury/{genome}/intersect.{cutoff}.meryl/merylIndex',
+               cutoff=[5, 10],
+               genome=genomes),
+        expand('output/030_merqury/{genome}.merqury/merq.completeness.stats',
+               genome=genomes)
 
 
 # Need to do this manually as well because merqury can't find the cutoff in
@@ -72,12 +81,11 @@ rule merqury_kmer_analysis:
         '&> {log}'
 
 
-# look for solid kmers in assembly
+# manual kmer analysis with meryl
 # TODO: get stats from each
 # TOTAL=`meryl statistics $read_solid | head -n3 | tail -n1 | awk '{print $2}'`
 # ASM=`meryl statistics $asm.solid.meryl | head -n3 | tail -n1 | awk '{print $2}'`
 # echo -e "${asm}\tall\t${ASM}\t${TOTAL}" | awk '{print $0"\t"((100*$3)/$4)}' >> $name.completeness.stats
-
 
 # meryl intersect output $asm.solid.meryl $asm.meryl $read_solid
 rule meryl_intersect_kmers:

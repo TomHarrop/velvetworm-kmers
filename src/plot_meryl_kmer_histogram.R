@@ -40,6 +40,9 @@ kmer_plot <- ggplot(hist_data, aes(x = `V1`, y = V2)) +
     geom_vline(xintercept = 32,
                linetype = 3,
                colour = my_pal[[8]]) +
+    geom_vline(xintercept = 301,
+               linetype = 2,
+               colour = my_pal[[4]]) +
     geom_path(alpha = 0.75, colour = my_pal[[1]]) +
     scale_y_continuous(
         trans = "log10",

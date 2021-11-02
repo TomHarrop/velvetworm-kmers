@@ -44,7 +44,7 @@ rule target:
         expand('output/030_merqury/{genome}/intersect.{cutoff}.meryl/merylIndex',
                cutoff=[5, 10],
                genome=genomes),
-        expand('output/030_merqury/{genome}.merqury/merq.completeness.stats',
+        expand('output/030_merqury/{genome}.merqury/{genome}.completeness.stats',
                genome=genomes)
 
 
@@ -56,7 +56,7 @@ rule merqury_kmer_analysis:
         genome = 'data/genomes/{genome}.fa',
         db = 'output/030_merqury/illumina.meryl/merylIndex'
     output:
-        'output/030_merqury/{genome}.merqury/merq.completeness.stats'
+        'output/030_merqury/{genome}.merqury/{genome}.completeness.stats'
     params:
         wd = 'output/030_merqury/{genome}.merqury',
         genome = lambda wildcards, input: resolve_path(input.genome),

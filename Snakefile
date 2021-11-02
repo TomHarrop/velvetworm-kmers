@@ -204,9 +204,8 @@ rule meryl_kmer_hist:
         'bash -c \''
         'meryl '
         'threads={threads} '
-        'histogram illumina.meryl.hist '
-        '{params.db} '
-        '> '
+        'histogram {params.db}'
+        '> illumina.meryl.hist '
         '\''
         '2> {log}'
 

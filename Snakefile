@@ -195,18 +195,15 @@ rule meryl_kmer_hist:
         db = lambda wildcards, input: resolve_parent(input.db)
     log:
         resolve_path('output/logs/meryl_kmer_hist.log')
-    threads:
-        workflow.cores
     container:
         merqury
     shell:
         'cd {params.wd} || exit 1 ; '
         'bash -c \''
         'meryl '
-        'threads={threads} '
-        'histogram {params.db} '
+        'histogram illumina.meryl '
         '> illumina.meryl.hist '
-        '\''
+        '\' '
         '2> {log}'
 
 rule meryl_make_kmers:
